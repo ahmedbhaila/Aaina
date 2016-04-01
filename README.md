@@ -8,5 +8,5 @@ A REST service using Spring Boot that serves (in no particular order)
 3. Unread email list - TODO
 4. Tweets - TODO
 5. Facebook Notification display - TODO
-6. News
-7. Video
+6. News - TODO
+7. Video - TODO
