@@ -3,7 +3,7 @@ Aaina - A Magic Mirror REST service
 
 A REST service using Spring Boot that serves (in no particular order)
 
-1. Local weather information - In Progress
+1. Local weather information - /weather/{lat,lng}
   1. Current Weather
   2. Current Weather with a description
   3. Hourly/Daily Max Summary
