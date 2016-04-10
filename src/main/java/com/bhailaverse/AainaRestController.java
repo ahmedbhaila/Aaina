@@ -3,6 +3,7 @@ package com.bhailaverse;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,14 +29,16 @@ public class AainaRestController {
 	NewsService newsService;
 	
 	@RequestMapping(WEATHER_URL)
+	@CrossOrigin(origins = "http://localhost:3002")
 	public WeatherData getWeather(@PathVariable("latLng") String latLng) throws Exception {
 		log.debug("Accessing " + WEATHER_URL + " with " + latLng);
-		return weatherService.getWeather(latLng);
+		return weatherService.getWeather(latLng).toBlocking().single();
 	}
 	
 	@RequestMapping(NEWS_URL)
+	@CrossOrigin(origins = "http://localhost:3002")
 	public List<NewsData> getNews() throws Exception {
 		log.debug("Accessing " + NEWS_URL);
-		return newsService.getNews();
+		return newsService.getNews().toList().toBlocking().single();
 	}
 }

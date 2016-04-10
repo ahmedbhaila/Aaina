@@ -3,6 +3,8 @@ package com.bhailaverse.service;
 import com.bhailaverse.exception.AainaException;
 import com.bhailaverse.model.WeatherData;
 
+import rx.Observable;
+
 public interface WeatherService {
-	public WeatherData getWeather(String latLng) throws AainaException;
+	public Observable<WeatherData> getWeather(String latLng) throws AainaException;
 }
