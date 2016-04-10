@@ -15,5 +15,8 @@ A REST service using Spring Boot that serves (in no particular order)
 3. Unread email list - TODO
 4. Tweets - TODO
 5. Facebook Notification display - TODO
-6. News - TODO
+6. News - /news
+   1. News Headlines
+   2. Short description of headlines - support added but this takes up too much space
 7. Video - TODO
+8. Time - Current Date/Time
