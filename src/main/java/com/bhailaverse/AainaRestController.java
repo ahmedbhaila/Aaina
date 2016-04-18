@@ -14,12 +14,14 @@ import com.bhailaverse.service.NewsService;
 import com.bhailaverse.service.WeatherService;
 
 import lombok.extern.slf4j.Slf4j;
+import rx.Observable;
+import rx.schedulers.Schedulers;
 
 @Slf4j
 @RestController
 public class AainaRestController {
 	
-	private static final String WEATHER_URL = "/weather/{latLng}";
+	private static final String WEATHER_URL = "/weather/{latLng:.+}";
 	private static final String NEWS_URL = "/news";
 	
 	@Autowired
@@ -30,15 +32,20 @@ public class AainaRestController {
 	
 	@RequestMapping(WEATHER_URL)
 	@CrossOrigin(origins = "http://localhost:3002")
-	public WeatherData getWeather(@PathVariable("latLng") String latLng) throws Exception {
+	public Observable<WeatherData> getWeather(@PathVariable("latLng") String latLng) throws Exception {
 		log.debug("Accessing " + WEATHER_URL + " with " + latLng);
-		return weatherService.getWeather(latLng).toBlocking().single();
+		return weatherService.getWeather(latLng)
+				.subscribeOn(Schedulers.computation())
+				.single();
 	}
 	
 	@RequestMapping(NEWS_URL)
 	@CrossOrigin(origins = "http://localhost:3002")
-	public List<NewsData> getNews() throws Exception {
+	public Observable<List<NewsData>> getNews() throws Exception {
 		log.debug("Accessing " + NEWS_URL);
-		return newsService.getNews().toList().toBlocking().single();
+		return newsService.getNews()
+				.subscribeOn(Schedulers.computation())
+				.toList()
+				.single();
 	}
 }

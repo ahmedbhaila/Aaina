@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.Singular;
 import rx.Observable;
 
 @Builder
@@ -15,7 +16,7 @@ public class WeatherData {
 	private Double currentTemp;
 	private String currentTempDesc;
 	private String alert;
-	private String hourlySummmary;
+	private String hourlySummary;
 	private String dailySummary;
 	
 	private Double highTemp;
@@ -24,11 +25,12 @@ public class WeatherData {
 	private long sunriseTime;
 	private long sunsetTime;
 	
-	//@Singular("forecast")
-	private Observable<List<SkinnyWeatherData>> forecast;
+	@Singular("forecast")
+	private List<SkinnyWeatherData> forecast;
 	
 	public List<SkinnyWeatherData> getForecast() {
-		return forecast.toBlocking().single();
+		//return forecast.toBlocking().single();
+		return forecast;
 	}
 	
 }

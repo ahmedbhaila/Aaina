@@ -1,13 +1,11 @@
 package com.bhailaverse.service;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -20,8 +18,8 @@ import com.jayway.jsonpath.JsonPath;
 
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONArray;
-import net.minidev.json.JSONObject;
 import rx.Observable;
+import rx.schedulers.Schedulers;
 
 @Slf4j
 public class DarkSkyWeatherService implements WeatherService {
@@ -39,7 +37,7 @@ public class DarkSkyWeatherService implements WeatherService {
 		return Observable.create(sub -> {
 			try {
 				ResponseEntity<String> response = restTemplate.getForEntity(serviceUrl, String.class, apiKey, latLng);
-				System.out.println(response.getBody().toString());
+				//System.out.println(response.getBody().toString());
 				sub.onNext(response);
 				sub.onCompleted();
 			}
@@ -56,21 +54,30 @@ public class DarkSkyWeatherService implements WeatherService {
 	
 	public Observable<WeatherData> getWeather(String latLng) throws AainaException {
 		return makeHttpCall(latLng)
+	    .subscribeOn(Schedulers.io())
 		.map( res -> Configuration.defaultConfiguration().jsonProvider().parse(res.getBody()))
 		.map(document -> {
 			
-			return WeatherData
+			
+			List<SkinnyWeatherData> forecast = new ArrayList<SkinnyWeatherData>();
+			
+			WeatherData data = WeatherData
 					.builder()
 					.currentTemp(JsonPath.read(document, "$.currently.temperature"))
 					.currentTempDesc(JsonPath.read(document, "$.currently.summary"))
 					.dailySummary(JsonPath.read(document, "$.daily.summary"))
-					.hourlySummmary(JsonPath.read(document, "$.hourly.summary"))
+					.hourlySummary(JsonPath.read(document, "$.hourly.summary"))
 					.highTemp(JsonPath.read(document, "$.daily.data[0].temperatureMax"))
 					.lowTemp(JsonPath.read(document, "$.daily.data[0]temperatureMin"))
 					.sunriseTime((Integer)JsonPath.read(document, "$.daily.data[0].sunriseTime"))
 					.sunsetTime((Integer)JsonPath.read(document, "$.daily.data.[0].sunsetTime"))
-					.forecast(getFutureCast(document).toList())
 					.build();
+			
+			getFutureCast(document).subscribeOn(Schedulers.computation()).subscribe(f -> {
+				forecast.add(f);
+			});
+			data.setForecast(forecast);
+			return data;
 		});
 	}
 	
@@ -81,8 +88,8 @@ public class DarkSkyWeatherService implements WeatherService {
 		.map(item -> {
 			LinkedHashMap<String, Object> temp = (LinkedHashMap<String, Object>)item;
 			return SkinnyWeatherData.builder()
-			.highTemp((Double)temp.get("temperatureMax"))
-			.lowTemp((Double)temp.get("temperatureMin"))
+			.highTemp((double)temp.get("temperatureMax"))
+			.lowTemp((double)temp.get("temperatureMin"))
 			.build();
 		});
 	}
