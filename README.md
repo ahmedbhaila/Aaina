@@ -19,4 +19,4 @@ A REST service using Spring Boot that serves (in no particular order)
    1. News Headlines
    2. Short description of headlines - support added but this takes up too much space
 7. Video - TODO
-8. Time - Current Date/Time
+8. Time - Current Date/Time - this is better handled on the client
