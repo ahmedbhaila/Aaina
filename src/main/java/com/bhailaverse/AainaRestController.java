@@ -14,7 +14,6 @@ import com.bhailaverse.service.NewsService;
 import com.bhailaverse.service.WeatherService;
 
 import lombok.extern.slf4j.Slf4j;
-import rx.Observable;
 import rx.schedulers.Schedulers;
 
 @Slf4j
@@ -32,20 +31,21 @@ public class AainaRestController {
 	
 	@RequestMapping(WEATHER_URL)
 	@CrossOrigin(origins = "http://localhost:3002")
-	public Observable<WeatherData> getWeather(@PathVariable("latLng") String latLng) throws Exception {
+	public WeatherData getWeather(@PathVariable("latLng") String latLng) throws Exception {
 		log.debug("Accessing " + WEATHER_URL + " with " + latLng);
 		return weatherService.getWeather(latLng)
 				.subscribeOn(Schedulers.computation())
-				.single();
+				.toBlocking().single();
+				//.first();
 	}
 	
 	@RequestMapping(NEWS_URL)
 	@CrossOrigin(origins = "http://localhost:3002")
-	public Observable<List<NewsData>> getNews() throws Exception {
+	public List<NewsData> getNews() throws Exception {
 		log.debug("Accessing " + NEWS_URL);
 		return newsService.getNews()
 				.subscribeOn(Schedulers.computation())
-				.toList()
-				.single();
+				.toBlocking().single();
+				//.single();
 	}
 }

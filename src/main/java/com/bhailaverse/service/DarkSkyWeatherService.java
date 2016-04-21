@@ -1,6 +1,5 @@
 package com.bhailaverse.service;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -52,34 +51,41 @@ public class DarkSkyWeatherService implements WeatherService {
 		});
 	}
 	
+	
+	private Observable<WeatherData> createWeatherData(Object document) {
+		WeatherData data = WeatherData
+				.builder()
+				.currentTemp(JsonPath.read(document, "$.currently.temperature"))
+				.currentTempDesc(JsonPath.read(document, "$.currently.summary"))
+				.dailySummary(JsonPath.read(document, "$.daily.summary"))
+				.hourlySummary(JsonPath.read(document, "$.hourly.summary"))
+				.highTemp(JsonPath.read(document, "$.daily.data[0].temperatureMax"))
+				.lowTemp(JsonPath.read(document, "$.daily.data[0]temperatureMin"))
+				.sunriseTime((Integer)JsonPath.read(document, "$.daily.data[0].sunriseTime"))
+				.sunsetTime((Integer)JsonPath.read(document, "$.daily.data.[0].sunsetTime"))
+				.build();
+		return Observable.just(data);
+	}
 	public Observable<WeatherData> getWeather(String latLng) throws AainaException {
 		return makeHttpCall(latLng)
 	    .subscribeOn(Schedulers.io())
 		.map( res -> Configuration.defaultConfiguration().jsonProvider().parse(res.getBody()))
-		.map(document -> {
+		.flatMap(document -> {
 			
 			
-			List<SkinnyWeatherData> forecast = new ArrayList<SkinnyWeatherData>();
+			Observable<WeatherData> wd = createWeatherData(document);
 			
-			WeatherData data = WeatherData
-					.builder()
-					.currentTemp(JsonPath.read(document, "$.currently.temperature"))
-					.currentTempDesc(JsonPath.read(document, "$.currently.summary"))
-					.dailySummary(JsonPath.read(document, "$.daily.summary"))
-					.hourlySummary(JsonPath.read(document, "$.hourly.summary"))
-					.highTemp(JsonPath.read(document, "$.daily.data[0].temperatureMax"))
-					.lowTemp(JsonPath.read(document, "$.daily.data[0]temperatureMin"))
-					.sunriseTime((Integer)JsonPath.read(document, "$.daily.data[0].sunriseTime"))
-					.sunsetTime((Integer)JsonPath.read(document, "$.daily.data.[0].sunsetTime"))
-					.build();
+			Observable<List<SkinnyWeatherData>> forecast = getFutureCast(document).toList();
 			
-			getFutureCast(document).subscribeOn(Schedulers.computation()).subscribe(f -> {
-				forecast.add(f);
+			return Observable.zip(wd, forecast, (w,f) -> {
+				w.setForecast(f);
+				return w;
 			});
-			data.setForecast(forecast);
-			return data;
+					
 		});
 	}
+	
+	
 	
 	@SuppressWarnings("unchecked")
 	private Observable<SkinnyWeatherData> getFutureCast(Object document) {
@@ -88,8 +94,8 @@ public class DarkSkyWeatherService implements WeatherService {
 		.map(item -> {
 			LinkedHashMap<String, Object> temp = (LinkedHashMap<String, Object>)item;
 			return SkinnyWeatherData.builder()
-			.highTemp((double)temp.get("temperatureMax"))
-			.lowTemp((double)temp.get("temperatureMin"))
+			.highTemp(temp.get("temperatureMax"))
+			.lowTemp(temp.get("temperatureMin"))
 			.build();
 		});
 	}

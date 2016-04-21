@@ -6,6 +6,6 @@ import lombok.Data;
 @Builder
 @Data
 public class SkinnyWeatherData {
-	private Double highTemp;
-	private Double lowTemp;
+	private Object highTemp;
+	private Object lowTemp;
 }
